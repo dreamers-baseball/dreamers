@@ -1,0 +1,1 @@
+window.__NUXT__=(function(a){return {staticAssetsBase:"\u002Fdreamers\u002F_nuxt\u002Fstatic\u002F1743504503",layout:"default",error:a,serverRendered:true,routePath:"\u002Frecord\u002Fbatter",config:{_app:{basePath:"\u002Fdreamers\u002F",assetsPath:"\u002Fdreamers\u002F_nuxt\u002F",cdnURL:a}}}}(null));
