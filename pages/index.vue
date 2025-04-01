@@ -14,7 +14,7 @@
         </div>
         <div class ="el-col el-col-22 el-col-xs-22 el-col-xs-offset-1 el-col-sm-22 el-col-sm-offset-1 el-col-md-22 el-col-md-offset-1 el-col-lg-22 el-col-lg-offset-1">
           <el-table :data="tableDataNEWS.slice(0,5)" style="width: 100%" :row-class-name="tableRowClassName" :default-sort = "{prop: 'date', order: 'descending'}" :show-header=false>
-            <el-table-column prop="date"width='120%'></el-table-column>
+            <el-table-column prop="date" width='120%'></el-table-column>
             <el-table-column prop="title" ></el-table-column>
             <el-table-column prop="link" width='120%'>
               <template slot-scope="scope">
@@ -295,7 +295,128 @@ export default {
         return 'color-row';
       } 
       return '';
-    }
+    },
+    async fetchData() {
+
+      const apiKey = 'AIzaSyDVX99fm1rQctLiW-BCTyo407Q0w4Ku_78'
+      const batterUrlId = 'https://sheets.googleapis.com/v4/spreadsheets/18vDSTH43uJ9FRhKSGLVO-w4_nhO6dO_pl3Ivh3wAy-Q'
+      const pitcherUrlId = 'https://sheets.googleapis.com/v4/spreadsheets/11Ym9FNnIqBucTsSOqDiA_RBXTUiJYvyAiN-0ABE3y-0'
+      //打者數據--------------
+      let batterRecord = []
+
+      const axios = (await import('axios')).default
+      const { data:batterSheets} = await axios.get(batterUrlId+"?key="+apiKey)
+      const { data:batterData } = await axios.get(batterUrlId+"/values/'"+batterSheets.sheets[batterSheets.sheets.length-1].properties.title+"'!A2:O?key="+apiKey)
+
+      for(let i=0;i<batterData.values.length;i++){
+        batterRecord[i] = {
+          'number':parseInt(batterData.values[i][0]),
+          'name':batterData.values[i][1],
+          'GP':parseInt(batterData.values[i][2]),
+          'PA':parseInt(batterData.values[i][3]),
+          'AB':parseInt(batterData.values[i][4]),
+          'HIT':parseInt(batterData.values[i][5]),
+          'AVG':parseFloat(batterData.values[i][6]),
+          'RBI':parseInt(batterData.values[i][7]),
+          'R':parseInt(batterData.values[i][8]),
+          'SB':parseInt(batterData.values[i][9]),
+          'K':parseInt(batterData.values[i][10]),
+          'BB':parseInt(batterData.values[i][12]),
+          'SF':parseInt(batterData.values[i][13]),
+          'OBP':parseFloat(batterData.values[i][14]),
+          'HR':parseInt(batterData.values[i][15]),
+        }
+      }
+
+      let batterRecordAVG = batterRecord
+      let batterRecordRBI = batterRecord
+      let batterRecordHR = batterRecord
+      let batterRecordHIT = batterRecord
+      let batterRecordSB = batterRecord    
+
+      batterRecordAVG = batterRecordAVG.sort((a, b) => (b.AVG - a.AVG));
+      batterRecordAVG = batterRecordAVG.slice(0,5)
+      batterRecordRBI = batterRecordRBI.sort((a, b) => (b.RBI - a.RBI));
+      batterRecordRBI = batterRecordRBI.slice(0,5)
+      batterRecordHR = batterRecordHR.sort((a, b) => (b.HR - a.HR));
+      batterRecordHR = batterRecordHR.slice(0,5)
+      batterRecordHIT = batterRecordHIT.sort((a, b) => (b.HIT - a.HIT));
+      batterRecordHIT = batterRecordHIT.slice(0,5)
+      batterRecordSB = batterRecordSB.sort((a, b) => (b.SB - a.SB));
+      batterRecordSB = batterRecordSB.slice(0,5)
+
+      if(batterRecordHR[0].HR == '0'){
+        batterRecordHR = []
+      }
+
+      //投手數據--------------
+      let pitcherRecord = []
+      const { data:pitcherSheets} = await axios.get(pitcherUrlId+"?key="+apiKey)
+      const { data:pitcherData } = await axios.get(pitcherUrlId+"/values/'"+pitcherSheets.sheets[pitcherSheets.sheets.length-1].properties.title+"'!A2:O?key="+apiKey)
+
+      for(let i=0;i<pitcherData.values.length;i++){
+        pitcherRecord[i] = {
+          'number':parseInt(pitcherData.values[i][0]),
+          'name':pitcherData.values[i][1],
+          'GP':parseInt(pitcherData.values[i][2]),
+          'GS':parseInt(pitcherData.values[i][3]),
+          'GIF':parseInt(pitcherData.values[i][4]),
+          'IP':parseFloat(pitcherData.values[i][5]),
+          'W':parseInt(pitcherData.values[i][6]),
+          'L':parseInt(pitcherData.values[i][7]),
+          'SV':parseInt(pitcherData.values[i][8]),
+          'HLD':parseInt(pitcherData.values[i][9]),
+          'ERA':parseFloat(pitcherData.values[i][10]),
+          'K':parseInt(pitcherData.values[i][12]),
+          'BB':parseInt(pitcherData.values[i][12]),
+          'HIT':parseInt(pitcherData.values[i][13]),
+          'UR':parseInt(pitcherData.values[i][14]),
+          'ER':parseInt(pitcherData.values[i][15]),
+          'WHIP':parseFloat(pitcherData.values[i][16]),
+        }
+      }
+
+      let pitcherRecordW = pitcherRecord
+      let pitcherRecordSV = pitcherRecord
+      let pitcherRecordHLD = pitcherRecord
+      let pitcherRecordERA = pitcherRecord
+      let pitcherRecordK = pitcherRecord
+
+      for(let i=0;i<pitcherRecordK.length;i++){
+        pitcherRecordK[i].K = parseInt(pitcherRecordK[i].K)
+      }//K STRING比對有問題 要先轉成INT
+
+      pitcherRecordW = pitcherRecordW.sort((a, b) => (b.W - a.W));
+      pitcherRecordW = pitcherRecordW.slice(0,5)
+      pitcherRecordSV = pitcherRecordSV.sort((a, b) => (b.SV - a.SV));
+      pitcherRecordSV = pitcherRecordSV.slice(0,5)
+      pitcherRecordERA = pitcherRecordERA.sort((a, b) => (b.HLD - a.HLD));
+      pitcherRecordERA = pitcherRecordERA.slice(0,5)
+      pitcherRecordHLD = pitcherRecordHLD.sort((a, b) => (a.ERA - b.ERA));
+      pitcherRecordHLD = pitcherRecordHLD.slice(0,5)
+      pitcherRecordK = pitcherRecordK.sort((a, b) => (b.K - a.K));
+      pitcherRecordK = pitcherRecordK.slice(0,5)
+
+      if(pitcherRecordSV[0].SV == '0'){
+        pitcherRecordSV = []
+      }
+
+      
+     this.batterRecord=batterRecord
+     this.batterRecordAVG=batterRecordAVG
+     this.batterRecordRBI=batterRecordRBI
+     this.batterRecordHR =batterRecordHR 
+     this.batterRecordHIT=batterRecordHIT
+     this.batterRecordSB =batterRecordSB 
+
+     this.pitcherRecord=pitcherRecord
+     this.pitcherRecordW=pitcherRecordW
+     this.pitcherRecordSV=pitcherRecordSV
+     this.pitcherRecordHLD=pitcherRecordHLD 
+     this.pitcherRecordERA=pitcherRecordERA
+     this.pitcherRecordK=pitcherRecordK 
+      
+    },
   },
   watch: {
 
@@ -352,134 +473,22 @@ export default {
       },
     ]
 
-    const apiKey = 'AIzaSyDVX99fm1rQctLiW-BCTyo407Q0w4Ku_78'
-    const batterUrlId = 'https://sheets.googleapis.com/v4/spreadsheets/18vDSTH43uJ9FRhKSGLVO-w4_nhO6dO_pl3Ivh3wAy-Q'
-    const pitcherUrlId = 'https://sheets.googleapis.com/v4/spreadsheets/11Ym9FNnIqBucTsSOqDiA_RBXTUiJYvyAiN-0ABE3y-0'
-    //打者數據--------------
-    let batterRecord = []
-
-    const axios = (await import('axios')).default
-    const { data:batterSheets} = await axios.get(batterUrlId+"?key="+apiKey)
-    const { data:batterData } = await axios.get(batterUrlId+"/values/'"+batterSheets.sheets[batterSheets.sheets.length-1].properties.title+"'!A2:O?key="+apiKey)
-
-    for(let i=0;i<batterData.values.length;i++){
-      batterRecord[i] = {
-        'number':parseInt(batterData.values[i][0]),
-        'name':batterData.values[i][1],
-        'GP':parseInt(batterData.values[i][2]),
-        'PA':parseInt(batterData.values[i][3]),
-        'AB':parseInt(batterData.values[i][4]),
-        'HIT':parseInt(batterData.values[i][5]),
-        'AVG':parseFloat(batterData.values[i][6]),
-        'RBI':parseInt(batterData.values[i][7]),
-        'R':parseInt(batterData.values[i][8]),
-        'SB':parseInt(batterData.values[i][9]),
-        'K':parseInt(batterData.values[i][10]),
-        'BB':parseInt(batterData.values[i][12]),
-        'SF':parseInt(batterData.values[i][13]),
-        'OBP':parseFloat(batterData.values[i][14]),
-        'HR':parseInt(batterData.values[i][15]),
-      }
-    }
-
-    let batterRecordAVG = batterRecord
-    let batterRecordRBI = batterRecord
-    let batterRecordHR = batterRecord
-    let batterRecordHIT = batterRecord
-    let batterRecordSB = batterRecord    
-
-    batterRecordAVG = batterRecordAVG.sort((a, b) => (b.AVG - a.AVG));
-    batterRecordAVG = batterRecordAVG.slice(0,5)
-    batterRecordRBI = batterRecordRBI.sort((a, b) => (b.RBI - a.RBI));
-    batterRecordRBI = batterRecordRBI.slice(0,5)
-    batterRecordHR = batterRecordHR.sort((a, b) => (b.HR - a.HR));
-    batterRecordHR = batterRecordHR.slice(0,5)
-    batterRecordHIT = batterRecordHIT.sort((a, b) => (b.HIT - a.HIT));
-    batterRecordHIT = batterRecordHIT.slice(0,5)
-    batterRecordSB = batterRecordSB.sort((a, b) => (b.SB - a.SB));
-    batterRecordSB = batterRecordSB.slice(0,5)
-
-    if(batterRecordHR[0].HR == '0'){
-      batterRecordHR = []
-    }
-
-    //投手數據--------------
-    let pitcherRecord = []
-    const { data:pitcherSheets} = await axios.get(pitcherUrlId+"?key="+apiKey)
-    const { data:pitcherData } = await axios.get(pitcherUrlId+"/values/'"+pitcherSheets.sheets[pitcherSheets.sheets.length-1].properties.title+"'!A2:O?key="+apiKey)
-
-    for(let i=0;i<pitcherData.values.length;i++){
-      pitcherRecord[i] = {
-        'number':parseInt(pitcherData.values[i][0]),
-        'name':pitcherData.values[i][1],
-        'GP':parseInt(pitcherData.values[i][2]),
-        'GS':parseInt(pitcherData.values[i][3]),
-        'GIF':parseInt(pitcherData.values[i][4]),
-        'IP':parseFloat(pitcherData.values[i][5]),
-        'W':parseInt(pitcherData.values[i][6]),
-        'L':parseInt(pitcherData.values[i][7]),
-        'SV':parseInt(pitcherData.values[i][8]),
-        'HLD':parseInt(pitcherData.values[i][9]),
-        'ERA':parseFloat(pitcherData.values[i][10]),
-        'K':parseInt(pitcherData.values[i][12]),
-        'BB':parseInt(pitcherData.values[i][12]),
-        'HIT':parseInt(pitcherData.values[i][13]),
-        'UR':parseInt(pitcherData.values[i][14]),
-        'ER':parseInt(pitcherData.values[i][15]),
-        'WHIP':parseFloat(pitcherData.values[i][16]),
-      }
-    }
-
-    let pitcherRecordW = pitcherRecord
-    let pitcherRecordSV = pitcherRecord
-    let pitcherRecordHLD = pitcherRecord
-    let pitcherRecordERA = pitcherRecord
-    let pitcherRecordK = pitcherRecord
-
-    for(let i=0;i<pitcherRecordK.length;i++){
-      pitcherRecordK[i].K = parseInt(pitcherRecordK[i].K)
-    }//K STRING比對有問題 要先轉成INT
-
-    pitcherRecordW = pitcherRecordW.sort((a, b) => (b.W - a.W));
-    pitcherRecordW = pitcherRecordW.slice(0,5)
-    pitcherRecordSV = pitcherRecordSV.sort((a, b) => (b.SV - a.SV));
-    pitcherRecordSV = pitcherRecordSV.slice(0,5)
-    pitcherRecordERA = pitcherRecordERA.sort((a, b) => (b.HLD - a.HLD));
-    pitcherRecordERA = pitcherRecordERA.slice(0,5)
-    pitcherRecordHLD = pitcherRecordHLD.sort((a, b) => (a.ERA - b.ERA));
-    pitcherRecordHLD = pitcherRecordHLD.slice(0,5)
-    pitcherRecordK = pitcherRecordK.sort((a, b) => (b.K - a.K));
-    pitcherRecordK = pitcherRecordK.slice(0,5)
-
-    if(pitcherRecordSV[0].SV == '0'){
-      pitcherRecordSV = []
-    }
+    
 
     return {
       tableDataNEWS:news,
       nextGame:nextGame,
       lastGame:lastGame,
-      batterRecord:batterRecord,
-      pitcherRecord:pitcherRecord,
+      
+      
       teamStandings:teamStandings,
 
-      batterRecordAVG:batterRecordAVG,
-      batterRecordRBI:batterRecordRBI,
-      batterRecordHR :batterRecordHR ,
-      batterRecordHIT:batterRecordHIT,
-      batterRecordSB :batterRecordSB ,
-
-      pitcherRecordW:pitcherRecordW,
-      pitcherRecordSV:pitcherRecordSV,
-      pitcherRecordHLD:pitcherRecordHLD ,
-      pitcherRecordERA:pitcherRecordERA,
-      pitcherRecordK:pitcherRecordK ,
     }
 
   },
   mounted() {
     
-
+    this.fetchData();
   }
 }
 </script>
